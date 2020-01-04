@@ -65,7 +65,7 @@ describe('My Mocked Test', function () {
       }));
 
       cy.visit('http://localhost:4200')
-      cy.get('.title').should('Lorem Ipsum')
+      cy.get('#title').contains('Lorem Ipsum')
    })
 })
 ```
