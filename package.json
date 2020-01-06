@@ -12,5 +12,8 @@
     "stubbing"
   ],
   "author": "maltehol",
-  "license": "ISC"
+  "license": "ISC",
+  "peerDependencies": {
+    "cypress": ">=3.0.0"
+  }
 }
