@@ -1,5 +1,4 @@
 // read the config
-
 const graphQLEndpoint = Cypress.config('graphQLEndpoint') ? Cypress.config('graphQLEndpoint') : '/graphql';
 const graphQLMethod = Cypress.config('graphQLMethod') ? Cypress.config('graphQLMethod') : 'POST';
 
@@ -11,6 +10,7 @@ const graphQLMethod = Cypress.config('graphQLMethod') ? Cypress.config('graphQLM
       }
    }
 */
+
 const graphQLParseRegEx = Cypress.config('graphQLParseRegEx') ? Cypress.config('graphQLParseRegEx') : /{\s*(?<query>[\w\-]+)(?:\((?<parameter>[^\)]+)\))?(?<body>(?:.*\s)*)}/;
 const regexp = new RegExp(graphQLParseRegEx);
 
@@ -46,7 +46,7 @@ Cypress.Commands.overwrite("visit", (originalFn, url, options) => {
    return originalFn(url, {
       ...options,
       onBeforeLoad: (win) => {
-         // if given, execute the orginal onBeforeLoad function
+         // if given, execute the orginal onBeforeLoad function first
          if (options && options.onBeforeLoad) {
             options.onBeforeLoad.apply(win);
          }
@@ -57,14 +57,37 @@ Cypress.Commands.overwrite("visit", (originalFn, url, options) => {
                return;
             }
 
-            Object.defineProperty(this, 'response', { writable: true });
-            Object.defineProperty(this, 'responseText', { writable: true });
-            Object.defineProperty(this, 'status', { writable: true });
-            Object.defineProperty(this, 'readyState', { writable: true });
+            this.mocked = false;
+            this.addEventListener('loadend', (event) => {
+               if (this.mocked) {
+                  return;
+               }
+               const query = event.target.graphQLQuery;
+               let response = event.target.response;
+               const jResponse = JSON.parse(response);
+               if (jResponse.data) {
+                  response = JSON.stringify(jResponse.data);
+               }
+               console.warn(`Query not mocked.`, `You may want to use this:\n\ncy.addGraphQLMock('${query}', (parameter, body) => (${response}));`);
+               console.warn(event);
+            });
 
+            let send = this.send;
             this.send = (x) => {
                const match = regexp.exec(JSON.parse(x).query);
                const { query, parameter, body } = match.groups;
+               this.graphQLQuery = query;
+
+               if (!queryToMock[query]) {
+                  send.call(this, x);
+                  return;
+               }
+
+               Object.defineProperty(this, 'response', { writable: true });
+               Object.defineProperty(this, 'responseText', { writable: true });
+               Object.defineProperty(this, 'status', { writable: true });
+               Object.defineProperty(this, 'readyState', { writable: true });
+
                this.response = this.responseText = JSON.stringify({
                   "data": queryToMock[query](parameter, body),
                   "loading": false,
@@ -73,6 +96,7 @@ Cypress.Commands.overwrite("visit", (originalFn, url, options) => {
                });
                this.status = 200;
                this.readyState = 4;
+               this.mocked = true;
 
                this.dispatchEvent(new CustomEvent('loadstart'));
                this.dispatchEvent(new CustomEvent('progress'));
