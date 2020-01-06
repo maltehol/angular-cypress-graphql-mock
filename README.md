@@ -17,13 +17,24 @@ You can provide some configurations in the `cypress.json` file:
 
 ## How to use?
 
-Import the package in your `command.js` file
+As long as there is no npm packet, you can install it by:
+```bash
+$ npm install https://github.com/maltehol/angular-cypress-graphql-mock.git
 ```
+or
+```bash
+$ git clone https://github.com/maltehol/angular-cypress-graphql-mock.git
+$ cd <your-project>
+$ npm install <path-to-angular-cypress-graphql-mock-clone>
+```
+
+Import the package in your `command.js` file
+```js
 import 'angular-cypress-graphql-mock';
 ```
 
 If needed you can add global mock data:
-```
+```js
 let globalMocks = {};
 globalMocks['User'] = (parameter, body) => ({
    "User": {
@@ -35,8 +46,7 @@ Cypress.config('globalMocks', globalMocks)
 ```
   
 In your test files you can then use it: 
-```
-
+```js
 describe('My Mocked Test', function () {
    it('loads a mocked Post', function () {
       cy.addGraphQLMock('Post', (a, b) => ({
@@ -75,9 +85,9 @@ describe('My Mocked Test', function () {
 | command                                  | parameter                                                                                          | description                                   |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | `cy.resetGraphQLMocks()`                 |                                                                                                    | resets the current Mocks to the global Mocks  |
-| `cy.addGraphQLMockMap(queryToMockFnMap)` | `queryToMockFnMap`: wie die Map für die `globalMocks`                                              | adds all mocks given in the map to the Mocks. |
+| `cy.addGraphQLMockMap(queryToMockFnMap)` | `queryToMockFnMap`: like the `globalMocks`                                                         | adds all mocks given in the map to the Mocks. |
 | `cy.addGraphQLMock(query, mockFn)`       | `query` Query Name this mock shall apply to <br> `mockFn` The mock function that shall be executed | Adds the Mock function to the Mocks.          |
-| `cy.removeGraphQLMock(query)`            | `query` Name of teh query                                                                          | removes the mock function for the query       |
+| `cy.removeGraphQLMock(query)`            | `query` Name of the query                                                                          | removes the mock function for the query       |
 
 ## Limits
 
