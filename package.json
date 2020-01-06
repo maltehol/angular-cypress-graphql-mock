@@ -15,8 +15,5 @@
   "license": "ISC",
   "peerDependencies": {
     "cypress": ">=3.0.0"
-  },
-  "dependencies": {
-    "cypress": "^3.8.1"
   }
 }
