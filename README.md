@@ -17,15 +17,9 @@ You can provide some configurations in the `cypress.json` file:
 
 ## How to use?
 
-As long as there is no npm packet, you can install it by:
+Install it:
 ```bash
-$ npm install https://github.com/maltehol/angular-cypress-graphql-mock.git
-```
-or
-```bash
-$ git clone https://github.com/maltehol/angular-cypress-graphql-mock.git
-$ cd <your-project>
-$ npm install <path-to-angular-cypress-graphql-mock-clone>
+$ npm i angular-cypress-graphql-mock
 ```
 
 Import the package in your `command.js` file
