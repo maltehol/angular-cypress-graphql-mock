@@ -52,7 +52,7 @@ Cypress.Commands.overwrite("visit", (originalFn, url, options) => {
          }
          const open = win.XMLHttpRequest.prototype.open;
          win.XMLHttpRequest.prototype.open = function (method, url) {
-            if (method !== graphQLMethod && url !== graphQLMethod) {
+            if (method !== graphQLMethod || !url.includes(graphQLEndpoint)) {
                open.call(this, method, url);
                return;
             }
