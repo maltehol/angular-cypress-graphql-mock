@@ -15,19 +15,33 @@ const graphQLParseRegEx = Cypress.config('graphQLParseRegEx') ? Cypress.config('
 const regexp = new RegExp(graphQLParseRegEx);
 
 Cypress.Commands.add('resetGraphQLMocks', () => {
-   queryToMock = globalMocks;
+   cy.window().then(window => {
+      window.queryToMock = globalMocks;
+   });
 });
 
 Cypress.Commands.add('addGraphQLMockMap', (queryToMockFnMap) => {
-   queryToMock = { ...queryToMock, ...queryToMockFnMap };
+   cy.window().then(window => {
+      window.queryToMock = { ...window.queryToMock, ...queryToMockFnMap };
+   });
 });
 
 Cypress.Commands.add('addGraphQLMock', (query, mockFn) => {
-   queryToMock[query] = mockFn;
+   cy.window().then((window) => {
+      if (!window.queryToMock) {
+         window.queryToMock = {};
+      }
+      window.queryToMock[query] = mockFn;
+   });
 });
 
 Cypress.Commands.add('removeGraphQLMock', (query) => {
-   queryToMock[query] = undefined;
+   cy.window().then((window) => {
+      if (!window.queryToMock) {
+         window.queryToMock = {};
+      }
+      window.queryToMock[query] = undefined;
+   });
 });
 
 Cypress.Commands.overwrite("visit", (originalFn, url, options) => {
@@ -46,56 +60,64 @@ Cypress.Commands.overwrite("visit", (originalFn, url, options) => {
             }
 
             this.mocked = false;
-            this.addEventListener('loadend', (event) => {
+            this.addEventListener('readystatechange', (event) => {
+               if (event.target.readyState !== 4) {
+                  return;
+               }
                if (this.mocked) {
                   return;
                }
+
+
                const query = event.target.graphQLQuery;
                let response = event.target.response;
 
                try {
-               const jResponse = JSON.parse(response);
-               if (jResponse.data) {
-                  response = JSON.stringify(jResponse.data);
-               }
+                  const jResponse = JSON.parse(response);
+                  if (jResponse.data) {
+                     response = JSON.stringify(jResponse.data);
+                  }
                } catch (e) {
                   response = '<mocked Data>';
                }
                console.warn(`Query not mocked.`,
                   `You may want to use this:\n\ncy.addGraphQLMock('${query}', (parameter, body) => (${response}));`);
-               console.warn(event);
             });
 
             let send = this.send;
             this.send = (x) => {
-               const match = regexp.exec(JSON.parse(x).query);
-               const { query, parameter, body } = match.groups;
-               this.graphQLQuery = query;
+               try {
+                  const match = regexp.exec(JSON.parse(x).query);
+                  const { query, parameter, body } = match.groups;
+                  this.graphQLQuery = query;
+                  if (!win.queryToMock || !win.queryToMock[query]) {
+                     send.call(this, x);
+                     return;
+                  }
 
-               if (!queryToMock[query]) {
+                  Object.defineProperty(this, 'response', { writable: true });
+                  Object.defineProperty(this, 'responseText', { writable: true });
+                  Object.defineProperty(this, 'status', { writable: true });
+                  Object.defineProperty(this, 'readyState', { writable: true });
+
+                  this.response = this.responseText = JSON.stringify({
+                     "data": win.queryToMock[query](parameter, body),
+                     "loading": false,
+                     "networkStatus": 7,
+                     "stale": false
+                  });
+                  this.status = 200;
+                  this.readyState = 4;
+                  this.mocked = true;
+
+                  this.dispatchEvent(new CustomEvent('loadstart'));
+                  this.dispatchEvent(new CustomEvent('progress'));
+                  this.dispatchEvent(new CustomEvent('load'));
+                  this.dispatchEvent(new CustomEvent('loadend'));
+               } catch (e) {
+                  console.info('Could not parse graphQL request. We ask the Server instead.');
                   send.call(this, x);
-                  return;
                }
-
-               Object.defineProperty(this, 'response', { writable: true });
-               Object.defineProperty(this, 'responseText', { writable: true });
-               Object.defineProperty(this, 'status', { writable: true });
-               Object.defineProperty(this, 'readyState', { writable: true });
-
-               this.response = this.responseText = JSON.stringify({
-                  "data": queryToMock[query](parameter, body),
-                  "loading": false,
-                  "networkStatus": 7,
-                  "stale": false
-               });
-               this.status = 200;
-               this.readyState = 4;
-               this.mocked = true;
-
-               this.dispatchEvent(new CustomEvent('loadstart'));
-               this.dispatchEvent(new CustomEvent('progress'));
-               this.dispatchEvent(new CustomEvent('load'));
-               this.dispatchEvent(new CustomEvent('loadend'));
             };
             open.call(this, method, url);
          };

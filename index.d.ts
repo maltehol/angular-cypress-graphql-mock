@@ -4,11 +4,10 @@ declare namespace Cypress {
       graphQLEndpoint: string,
       graphQLMethod: string,
       graphQLParseRegEx: string,
-      globalMocks: Dictionary<MockFn>
    }
    interface Chainable {
       resetGraphQLMocks(): void
-      addGraphQLMockMap(queryToMockFnMap: Dictionary<MockFn>): void
+      addGraphQLMockMap(queryToMockFnMap: { [query: string]: MockFn }): void
       addGraphQLMock(query: string, mockFn: MockFn): void
       removeGraphQLMock(query: string): void
    }
