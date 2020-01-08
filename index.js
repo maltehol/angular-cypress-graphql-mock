@@ -14,18 +14,6 @@ const graphQLMethod = Cypress.config('graphQLMethod') ? Cypress.config('graphQLM
 const graphQLParseRegEx = Cypress.config('graphQLParseRegEx') ? Cypress.config('graphQLParseRegEx') : /{\s*(?<query>[\w\-]+)(?:\((?<parameter>[^\)]+)\))?(?<body>(?:.*\s)*)}/;
 const regexp = new RegExp(graphQLParseRegEx);
 
-// This is the "database" of mocked responses. The mocks are a function which gets 
-// the query parameter and the query body as input
-/*
-   {
-      Post: (parameter, body) => graphql result,
-      User: (parameter, body) => graphql result
-   }
-*/
-const globalMocks = Cypress.config('globalMocks') ? Cypress.config('globalMocks') : {};
-let queryToMock = globalMocks;
-
-
 Cypress.Commands.add('resetGraphQLMocks', () => {
    queryToMock = globalMocks;
 });

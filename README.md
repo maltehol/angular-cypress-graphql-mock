@@ -8,12 +8,12 @@ It intercepts the XHR send method to manipulate the XHR and simulates a fake res
 
 You can provide some configurations in the `cypress.json` file:
 
-| key               | default                                                                   | description                                                                                                                                                                                                            |
-| ----------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| graphQLEndpoint   | `'/graphql'`                                                              | The GraphQL Endpoint                                                                                                                                                                                                   |
-| graphQLMethod     | `'POST'`                                                                  | The HTTP Method the GraphQL requests using                                                                                                                                                                             |
-| graphQLParseRegEx | `/{\s*(?<query>[\w\-]+)(?:\((?<parameter>[^\)]+)\))?(?<body>(?:.*\s)*)}/` | This RegExp is used to parse the GraphQL query to get the query name, query parameters and body.                                                                                                                       |
-| globalMocks       | `{}`                                                                      | If there are some Mocks that should work for all requests, this is the config value to set. It accepts a Dictionary with the query name as key and a function as value: `{ query: (parameter, body) => graphql Mock }` |
+| key               | default                                                                   | description                                                                                      |
+| ----------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| graphQLEndpoint   | `'/graphql'`                                                              | The GraphQL Endpoint                                                                             |
+| graphQLMethod     | `'POST'`                                                                  | The HTTP Method the GraphQL requests using                                                       |
+| graphQLParseRegEx | `/{\s*(?<query>[\w\-]+)(?:\((?<parameter>[^\)]+)\))?(?<body>(?:.*\s)*)}/` | This RegExp is used to parse the GraphQL query to get the query name, query parameters and body. |
+
 
 ## How to use?
 
@@ -31,18 +31,6 @@ $ npm install <path-to-angular-cypress-graphql-mock-clone>
 Import the package in your `command.js` file
 ```js
 import 'angular-cypress-graphql-mock';
-```
-
-If needed you can add global mock data:
-```js
-let globalMocks = {};
-globalMocks['User'] = (parameter, body) => ({
-   "User": {
-      "name": "John Doe",
-      "__typename": "User"
-   }
-});
-Cypress.config('globalMocks', globalMocks)
 ```
   
 In your test files you can then use it: 
@@ -84,8 +72,8 @@ describe('My Mocked Test', function () {
 
 | command                                  | parameter                                                                                          | description                                   |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `cy.resetGraphQLMocks()`                 |                                                                                                    | resets the current Mocks to the global Mocks  |
-| `cy.addGraphQLMockMap(queryToMockFnMap)` | `queryToMockFnMap`: like the `globalMocks`                                                         | adds all mocks given in the map to the Mocks. |
+| `cy.resetGraphQLMocks()`                 |                                                                                                    | resets the current Mocks                      |
+| `cy.addGraphQLMockMap(queryToMockFnMap)` | `queryToMockFnMap`: like `{ [quer]y: (parameter, body) => graphql Mock }`                          | adds all mocks given in the map to the Mocks. |
 | `cy.addGraphQLMock(query, mockFn)`       | `query` Query Name this mock shall apply to <br> `mockFn` The mock function that shall be executed | Adds the Mock function to the Mocks.          |
 | `cy.removeGraphQLMock(query)`            | `query` Name of the query                                                                          | removes the mock function for the query       |
 
