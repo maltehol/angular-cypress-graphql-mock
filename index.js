@@ -64,11 +64,17 @@ Cypress.Commands.overwrite("visit", (originalFn, url, options) => {
                }
                const query = event.target.graphQLQuery;
                let response = event.target.response;
+
+               try {
                const jResponse = JSON.parse(response);
                if (jResponse.data) {
                   response = JSON.stringify(jResponse.data);
                }
-               console.warn(`Query not mocked.`, `You may want to use this:\n\ncy.addGraphQLMock('${query}', (parameter, body) => (${response}));`);
+               } catch (e) {
+                  response = '<mocked Data>';
+               }
+               console.warn(`Query not mocked.`,
+                  `You may want to use this:\n\ncy.addGraphQLMock('${query}', (parameter, body) => (${response}));`);
                console.warn(event);
             });
 
