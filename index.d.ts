@@ -5,6 +5,8 @@ declare namespace Cypress {
       graphQLParseRegEx: string,
    }
    interface Chainable {
+      enableMocking(): void
+      disableMocking(): void
       resetGraphQLMocks(): void
       addGraphQLMockMap(queryToMockFnMap: { [query: string]: MockFn }): void
       addGraphQLMock(query: string, mockFn: MockFn): void
