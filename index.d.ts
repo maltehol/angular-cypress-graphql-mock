@@ -1,5 +1,4 @@
 declare namespace Cypress {
-   type MockFn = (parameter: string, body: string) => string | object;
    interface ConfigOptions {
       graphQLEndpoint: string,
       graphQLMethod: string,
@@ -13,3 +12,11 @@ declare namespace Cypress {
    }
 }
 
+declare type ParsedQuery = { query: string, parameter: string, body: string };
+declare type GraphQLRequest<T> = {
+   operationName: string,
+   variables: T,
+   query: string,
+   parsedQuery: ParsedQuery
+};
+declare type MockFn = (graphQLRequest?: GraphQLRequest) => string | object;

@@ -80,13 +80,14 @@ Cypress.Commands.overwrite("visit", (originalFn, url, options) => {
                   response = '<mocked Data>';
                }
                console.warn(`Query not mocked.`,
-                  `You may want to use this:\n\ncy.addGraphQLMock('${query}', (parameter, body) => (${response}));`);
+               `You may want to use this:\n\ncy.addGraphQLMock('${query}', (graphQLRequest) => (${response}));`);
             });
 
             let send = this.send;
             this.send = (x) => {
                try {
-                  const match = regexp.exec(JSON.parse(x).query);
+               const request = JSON.parse(x);
+               const match = regexp.exec(request.query);
                   const { query, parameter, body } = match.groups;
                   this.graphQLQuery = query;
                   if (!win.queryToMock || !win.queryToMock[query]) {
@@ -99,8 +100,13 @@ Cypress.Commands.overwrite("visit", (originalFn, url, options) => {
                   Object.defineProperty(this, 'status', { writable: true });
                   Object.defineProperty(this, 'readyState', { writable: true });
 
+               const graphQLRequest = {
+                  ...request,
+                  parsedQuery: { query, parameter, body }
+               };
+
                   this.response = this.responseText = JSON.stringify({
-                     "data": win.queryToMock[query](parameter, body),
+                  "data": win.queryToMock[query](graphQLRequest),
                      "loading": false,
                      "networkStatus": 7,
                      "stale": false
