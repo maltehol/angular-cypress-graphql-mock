@@ -19,7 +19,7 @@ You can provide some configurations in the `cypress.json` file:
 
 Install it:
 ```bash
-$ npm i angular-cypress-graphql-mock
+$ npm i angular-cypress-graphql-mock --save-dev
 ```
 
 Import the package in your `command.js` file
@@ -31,7 +31,7 @@ In your test files you can then use it:
 ```js
 describe('My Mocked Test', function () {
    it('loads a mocked Post', function () {
-      cy.addGraphQLMock('Post', (a, b) => ({
+      cy.addGraphQLMock('Post', (query) => ({
          "Post": {
             "id": "35",
             "title": "Lorem Ipsum",
@@ -56,8 +56,10 @@ describe('My Mocked Test', function () {
          }
       }));
 
-      cy.visit('http://localhost:4200')
-      cy.get('#title').contains('Lorem Ipsum')
+      cy.enableMocking();
+
+      cy.visit('http://localhost:4200');
+      cy.get('#title').contains('Lorem Ipsum');
    })
 })
 ```
@@ -67,11 +69,10 @@ describe('My Mocked Test', function () {
 | command                                  | parameter                                                                                          | description                                   |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | `cy.resetGraphQLMocks()`                 |                                                                                                    | resets the current Mocks                      |
-| `cy.addGraphQLMockMap(queryToMockFnMap)` | `queryToMockFnMap`: like `{ [quer]y: (parameter, body) => graphql Mock }`                          | adds all mocks given in the map to the Mocks. |
+| `cy.addGraphQLMockMap(queryToMockFnMap)` | `queryToMockFnMap`: like `{ [query]: (request: GraphQLRequest<InputType>) => graphql Mock }`       | adds all mocks given in the map to the Mocks. |
 | `cy.addGraphQLMock(query, mockFn)`       | `query` Query Name this mock shall apply to <br> `mockFn` The mock function that shall be executed | Adds the Mock function to the Mocks.          |
 | `cy.removeGraphQLMock(query)`            | `query` Name of the query                                                                          | removes the mock function for the query       |
 
 ## Limits
 
-The package only works with `XHR` and only intercepts request that are fired when executing `cy.visit`.
-Also every request that is intercepted will **not** appear in the Network tab of the developer console.
+Every request that is intercepted will **not** appear in the Network tab of the developer console.
