@@ -10,13 +10,12 @@ const graphQLMethod = Cypress.config('graphQLMethod') ? Cypress.config('graphQLM
       }
    }
 */
-
 const graphQLParseRegEx = Cypress.config('graphQLParseRegEx') ? Cypress.config('graphQLParseRegEx') : /{\s*(?<query>[\w\-]+)(?:\((?<parameter>[^\)]+)\))?(?<body>(?:.*\s)*)}/;
 const regexp = new RegExp(graphQLParseRegEx);
 
 Cypress.Commands.add('resetGraphQLMocks', () => {
    cy.window().then(window => {
-      window.queryToMock = globalMocks;
+      window.queryToMock = {};
    });
 });
 
