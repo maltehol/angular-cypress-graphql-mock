@@ -1,6 +1,7 @@
 // read the config
 const graphQLEndpoint = Cypress.config('graphQLEndpoint') ? Cypress.config('graphQLEndpoint') : '/graphql';
 const graphQLMethod = Cypress.config('graphQLMethod') ? Cypress.config('graphQLMethod') : 'POST';
+const LS_PREFIX = 'gqlmock_';
 
 // extract the query, parameter and body of the graphql request. The query has the following form:
 /*
@@ -14,33 +15,25 @@ const graphQLParseRegEx = Cypress.config('graphQLParseRegEx') ? Cypress.config('
 const regexp = new RegExp(graphQLParseRegEx);
 
 Cypress.Commands.add('resetGraphQLMocks', () => {
-   cy.window().then(window => {
-      window.queryToMock = {};
+   for (const key of Object.keys(localStorage)) {
+      if (key.startsWith(LS_PREFIX)) {
+         localStorage.removeItem(key);
+      }
+   }
    });
-});
 
 Cypress.Commands.add('addGraphQLMockMap', (queryToMockFnMap) => {
-   cy.window().then(window => {
-      window.queryToMock = { ...window.queryToMock, ...queryToMockFnMap };
+   for (const query of Object.keys(queryToMockFnMap)) {
+      localStorage.setItem(`${LS_PREFIX}${query}`, queryToMockFnMap[query].toString());
+   }
    });
-});
 
 Cypress.Commands.add('addGraphQLMock', (query, mockFn) => {
-   cy.window().then((window) => {
-      if (!window.queryToMock) {
-         window.queryToMock = {};
-      }
-      window.queryToMock[query] = mockFn;
-   });
+   localStorage.setItem(`${LS_PREFIX}${query}`, mockFn.toString());
 });
 
 Cypress.Commands.add('removeGraphQLMock', (query) => {
-   cy.window().then((window) => {
-      if (!window.queryToMock) {
-         window.queryToMock = {};
-      }
-      window.queryToMock[query] = undefined;
-   });
+   localStorage.removeItem(`${LS_PREFIX}${query}`);
 });
 
 Cypress.Commands.add('enableMocking', () => {
@@ -86,7 +79,9 @@ Cypress.Commands.add('enableMocking', () => {
                const match = regexp.exec(request.query);
                const { query, parameter, body } = match.groups;
                this.graphQLQuery = query;
-               if (!win.queryToMock || !win.queryToMock[query]) {
+
+               const mockFn = localStorage.getItem(`${LS_PREFIX}${query}`);
+               if (!mockFn) {
                   send.call(this, x);
                   return;
                }
@@ -102,7 +97,7 @@ Cypress.Commands.add('enableMocking', () => {
                };
 
                this.response = this.responseText = JSON.stringify({
-                  "data": win.queryToMock[query](graphQLRequest),
+                  "data": eval('(' + mockFn + ')')(graphQLRequest),
                   "loading": false,
                   "networkStatus": 7,
                   "stale": false
