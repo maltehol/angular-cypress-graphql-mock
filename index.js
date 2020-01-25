@@ -20,13 +20,13 @@ Cypress.Commands.add('resetGraphQLMocks', () => {
          localStorage.removeItem(key);
       }
    }
-   });
+});
 
 Cypress.Commands.add('addGraphQLMockMap', (queryToMockFnMap) => {
    for (const query of Object.keys(queryToMockFnMap)) {
       localStorage.setItem(`${LS_PREFIX}${query}`, queryToMockFnMap[query].toString());
    }
-   });
+});
 
 Cypress.Commands.add('addGraphQLMock', (query, mockFn) => {
    localStorage.setItem(`${LS_PREFIX}${query}`, mockFn.toString());
@@ -37,7 +37,7 @@ Cypress.Commands.add('removeGraphQLMock', (query) => {
 });
 
 Cypress.Commands.add('enableMocking', () => {
-   cy.window().then((win) => {
+   cy.on('window:before:load', (win) => {
       const open = win.XMLHttpRequest.prototype.open;
       win.open = open;
 
