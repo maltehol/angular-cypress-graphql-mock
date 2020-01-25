@@ -1,3 +1,7 @@
+# 0.2.1
+* Use local storage to store Mocks 
+* use Event `window:before:load` to overwrite send method on each new `cy.visit()`
+
 # 0.2.0
  
 **Breaking Changes**
