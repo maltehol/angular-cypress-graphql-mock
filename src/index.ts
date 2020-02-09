@@ -43,6 +43,17 @@ const LS_PREFIX = 'gqlmock_';
 const graphQLParseRegEx = Cypress.config('graphQLParseRegEx') ? Cypress.config('graphQLParseRegEx') : /{\s*(?<query>[\w\-]+)(?:\((?<parameter>[^\)]+)\))?(?<body>(?:.*\s)*)}/;
 const regexp = new RegExp(graphQLParseRegEx);
 
+const clear = Cypress.LocalStorage.clear;
+Cypress.LocalStorage.clear = function (keys: string[] | undefined) {
+   if (!keys) {
+      keys = Object.keys(localStorage);
+   }
+
+   const newKeys = keys.filter(key => !key.startsWith(LS_PREFIX));
+   // do something with the keys here
+   return clear(newKeys);
+}
+
 Cypress.Commands.add('resetGraphQLMocks', () => {
    for (const key of Object.keys(localStorage)) {
       if (key.startsWith(LS_PREFIX)) {
