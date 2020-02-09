@@ -1,3 +1,32 @@
+interface IPrototype { prototype: any; }
+interface Window { XMLHttpRequest: XMLHttpRequest & IPrototype; }
+
+declare namespace Cypress {
+   interface ConfigOptions {
+      graphQLEndpoint: string,
+      graphQLMethod: string,
+      graphQLParseRegEx: string,
+   }
+   interface Chainable {
+      enableMocking(): void
+      disableMocking(): void
+      resetGraphQLMocks(): void
+      addGraphQLMockMap(queryToMockFnMap: { [query: string]: MockFn<unknown> }): void
+      addGraphQLMock(query: string, mockFn: MockFn<unknown>): void
+      removeGraphQLMock(query: string): void
+   }
+}
+
+declare type ParsedQuery = { query: string, parameter: string, body: string };
+declare type GraphQLRequest<T> = {
+   operationName: string,
+   variables: T,
+   query: string,
+   parsedQuery: ParsedQuery
+};
+declare type MockFn<T> = (graphQLRequest?: GraphQLRequest<T>) => string | object;
+
+
 // read the config
 const graphQLEndpoint = Cypress.config('graphQLEndpoint') ? Cypress.config('graphQLEndpoint') : '/graphql';
 const graphQLMethod = Cypress.config('graphQLMethod') ? Cypress.config('graphQLMethod') : 'POST';
@@ -22,13 +51,13 @@ Cypress.Commands.add('resetGraphQLMocks', () => {
    }
 });
 
-Cypress.Commands.add('addGraphQLMockMap', (queryToMockFnMap) => {
-   for (const query of Object.keys(queryToMockFnMap)) {
-      localStorage.setItem(`${LS_PREFIX}${query}`, queryToMockFnMap[query].toString());
+Cypress.Commands.add('addGraphQLMockMap', (queryToMockFnMap: { [query: string]: MockFn<unknown> }) => {
+   for (const [query, mockFn] of Object.entries(queryToMockFnMap)) {
+      localStorage.setItem(`${LS_PREFIX}${query}`, mockFn.toString());
    }
 });
 
-Cypress.Commands.add('addGraphQLMock', (query, mockFn) => {
+Cypress.Commands.add('addGraphQLMock', (query: string, mockFn: MockFn<unknown>) => {
    localStorage.setItem(`${LS_PREFIX}${query}`, mockFn.toString());
 });
 
@@ -41,14 +70,14 @@ Cypress.Commands.add('enableMocking', () => {
       const open = win.XMLHttpRequest.prototype.open;
       win.open = open;
 
-      win.XMLHttpRequest.prototype.open = function (method, url) {
+      win.XMLHttpRequest.prototype.open = function (method: string, url: string) {
          if (method !== graphQLMethod || !url.includes(graphQLEndpoint)) {
             win.open.call(this, method, url);
             return;
          }
 
          this.mocked = false;
-         this.addEventListener('readystatechange', (event) => {
+         this.addEventListener('readystatechange', (event: any) => {
             if (event.target.readyState !== 4) {
                return;
             }
@@ -73,11 +102,14 @@ Cypress.Commands.add('enableMocking', () => {
          });
 
          let send = this.send;
-         this.send = (x) => {
+         this.send = (x: string) => {
             try {
                const request = JSON.parse(x);
                const match = regexp.exec(request.query);
-               const { query, parameter, body } = match.groups;
+               if (!match) {
+                  return;
+               }
+               const { query, parameter, body } = (match as any).groups;
                this.graphQLQuery = query;
 
                const mockFn = localStorage.getItem(`${LS_PREFIX}${query}`);
