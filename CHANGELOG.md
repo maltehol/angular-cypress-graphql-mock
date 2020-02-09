@@ -1,6 +1,10 @@
+# 0.3.0
+* Migration to TypeScript
+* prevent deletion of mocks between tests 
+
 # 0.2.1
 * Use local storage to store Mocks 
-* use Event `window:before:load` to overwrite send method on each new `cy.visit()`
+* Use Event `window:before:load` to overwrite send method on each new `cy.visit()`
 
 # 0.2.0
  
