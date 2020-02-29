@@ -79,7 +79,9 @@ Cypress.Commands.add('removeGraphQLMock', (query) => {
 Cypress.Commands.add('enableMocking', () => {
    cy.on('window:before:load', (win) => {
       const open = win.XMLHttpRequest.prototype.open;
-      win.open = open;
+      if (!win.open) {
+         win.open = open;
+      }
 
       win.XMLHttpRequest.prototype.open = function (method: string, url: string) {
          if (method !== graphQLMethod || !url.includes(graphQLEndpoint)) {
@@ -117,13 +119,18 @@ Cypress.Commands.add('enableMocking', () => {
             try {
                const request = JSON.parse(x);
                const match = regexp.exec(request.query);
-               if (!match) {
+               if (!request.operationName && !match) {
                   return;
                }
                const { query, parameter, body } = (match as any).groups;
-               this.graphQLQuery = query;
+               this.graphQLQuery = request.operationName ? request.operationName : query;
 
-               const mockFn = localStorage.getItem(`${LS_PREFIX}${query}`);
+               let mockFn = localStorage.getItem(`${LS_PREFIX}${this.graphQLQuery}`);
+
+               // Fallback to parsed query name
+               if (!mockFn) {
+                  mockFn = localStorage.getItem(`${LS_PREFIX}${query}`);
+               }
                if (!mockFn) {
                   send.call(this, x);
                   return;
