@@ -1,3 +1,7 @@
+# 0.3.1
+* identify mock function by the `operationName` property of the requests
+* prevent overriding the old `open` function. This allows to disable mocking, even when `cy.enableMocking` is called twice.
+
 # 0.3.0
 * Migration to TypeScript
 * prevent deletion of mocks between tests 
