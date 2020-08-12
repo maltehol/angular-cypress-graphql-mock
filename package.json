@@ -1,6 +1,6 @@
 {
   "name": "angular-cypress-graphql-mock",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Adds the possibility to mock graphql requests when using cypress with angular and apollo-graphql",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -18,10 +18,10 @@
   "author": "maltehol",
   "license": "ISC",
   "peerDependencies": {
-    "cypress": ">=3.0.0"
+    "cypress": ">=4.0.0"
   },
   "devDependencies": {
-    "cypress": ">=3.0.0",
+    "cypress": ">=4.11.0",
     "typescript": "3.4.3"
   },
   "homepage": "https://github.com/maltehol/angular-cypress-graphql-mock",
